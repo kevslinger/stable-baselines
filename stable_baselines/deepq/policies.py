@@ -97,8 +97,8 @@ class FeedForwardPolicy(DQNPolicy):
 
         self._kwargs_check(feature_extraction, kwargs)
         if layers is None:
-            # layers = [64, 64]
-            layers = [32, 32]
+            layers = [64, 64]
+            #layers = [16, 16]
 
         with tf.variable_scope("model", reuse=reuse):
             with tf.variable_scope("action_value"):
