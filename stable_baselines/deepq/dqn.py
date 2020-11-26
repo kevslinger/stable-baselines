@@ -324,9 +324,10 @@ class DQN(OffPolicyRLModel):
                     logger.record_tabular("% time spent exploring",
                                           int(100 * self.exploration.value(self.num_timesteps)))
                     logger.dump_tabular()
-                    with open(f'../../{self.env}_output.csv', 'a', newline='') as csvfile:
+                    with open(f'{self.tensorboard_log.split["/"][-1]}/output.csv', 'a', newline='') as csvfile:
                         csvwriter = csv.writer(csvfile, delimiter=',')
-                        csvwriter.writerow([num_episodes, self.num_timesteps, np.mean(episode_successes[-100:]), mean_100ep_reward])
+                        csvwriter.writerow([num_episodes, self.num_timesteps, mean_100ep_reward,
+                                            np.mean(episode_successes[-100:])])
 
         callback.on_training_end()
         return self
