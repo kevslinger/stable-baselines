@@ -3,6 +3,8 @@ from functools import partial
 import tensorflow as tf
 import numpy as np
 import gym
+# KEVIN ADD
+import csv
 
 from stable_baselines import logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
@@ -322,6 +324,9 @@ class DQN(OffPolicyRLModel):
                     logger.record_tabular("% time spent exploring",
                                           int(100 * self.exploration.value(self.num_timesteps)))
                     logger.dump_tabular()
+                    with open(f'../../{self.env}_output.csv', 'a', newline='') as csvfile:
+                        csvwriter = csv.writer(csvfile, delimiter=',')
+                        csvwriter.writerow([num_episodes, self.num_timesteps, np.mean(episode_successes[-100:]), mean_100ep_reward])
 
         callback.on_training_end()
         return self
