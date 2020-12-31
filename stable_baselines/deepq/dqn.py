@@ -5,6 +5,7 @@ import numpy as np
 import gym
 # KEVIN ADD
 import csv
+import os
 
 from stable_baselines import logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
@@ -61,8 +62,8 @@ class DQN(OffPolicyRLModel):
                  learning_starts=1000, target_network_update_freq=500, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
                  prioritized_replay_eps=1e-6, param_noise=False,
-                 n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
-                 _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None):
+                 n_cpu_tf_sess=None, verbose=0, tensorboard_log=None, logdir=None,
+                 _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None, _run=None):
 
         # TODO: replay_buffer refactoring
         super(DQN, self).__init__(policy=policy, env=env, replay_buffer=None, verbose=verbose, policy_base=DQNPolicy,
@@ -84,6 +85,7 @@ class DQN(OffPolicyRLModel):
         self.buffer_size = buffer_size
         self.learning_rate = learning_rate
         self.gamma = gamma
+        self.logdir = logdir
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
@@ -103,6 +105,8 @@ class DQN(OffPolicyRLModel):
 
         if _init_setup_model:
             self.setup_model()
+
+        self._run = _run # SACRED / OMNIBOARD REPORTING
 
     def _get_pretrain_placeholders(self):
         policy = self.step_model
@@ -324,11 +328,19 @@ class DQN(OffPolicyRLModel):
                     logger.record_tabular("% time spent exploring",
                                           int(100 * self.exploration.value(self.num_timesteps)))
                     logger.dump_tabular()
-                    with open(f'{self.tensorboard_log.split["/"][-1]}/output.csv', 'a', newline='') as csvfile:
-                        csvwriter = csv.writer(csvfile, delimiter=',')
-                        csvwriter.writerow([num_episodes, self.num_timesteps, mean_100ep_reward,
-                                            np.mean(episode_successes[-100:])])
-
+                    # Save updates to CSV
+                    if self.logdir is not None:
+                        if not os.path.isdir(self.logdir):
+                            os.mkdir(self.logdir)
+                        with open(f'{self.logdir}/output.csv', 'a', newline='') as csvfile:
+                            csvwriter = csv.writer(csvfile, delimiter=',')
+                            csvwriter.writerow([num_episodes, self.num_timesteps, mean_100ep_reward,
+                                                np.mean(episode_successes[-100:])])
+                    # Save updates to Sacred
+                    if self._run is not None:
+                        self._run.log_scalar('100-Episode Mean Reward', mean_100ep_reward, self.num_timesteps)
+                        self._run.log_scalar('Success Rate', np.mean(episode_successes[-100:]), self.num_timesteps)
+                        
         callback.on_training_end()
         return self
 

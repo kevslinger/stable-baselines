@@ -100,9 +100,9 @@ class FeedForwardPolicy(DQNPolicy):
             print("ANNIE ARE YOU OKAY")
             print("ANNIE ARE YOU OKAY")
             print("ARE YOU OKAY ANNIE")
-            #layers = [64, 64]
+            layers = [64, 64, 64]
             #layers = [32, 32]
-            layers = [16, 16]
+            #layers = [16, 16]
 
         with tf.variable_scope("model", reuse=reuse):
             with tf.variable_scope("action_value"):
