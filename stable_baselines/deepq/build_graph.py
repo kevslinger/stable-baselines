@@ -122,7 +122,7 @@ def default_param_noise_filter(var):
     return False
 
 
-def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
+def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess, layers=None):
     """
     Creates the act function:
 
@@ -138,10 +138,22 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
     """
     eps = tf.get_variable("eps", (), initializer=tf.constant_initializer(0))
 
-    policy = q_func(sess, ob_space, ac_space, 1, 1, None)
+    policy = q_func(sess, ob_space, ac_space, 1, 1, None, layers=layers)
     obs_phs = (policy.obs_ph, policy.processed_obs)
     deterministic_actions = tf.argmax(policy.q_values, axis=1)
 
+    #########################
+    ### KEVIN UPDATE ########
+    ### GIMME DAT PRINTS ####
+    #########################
+    print("Hello yes I am in build_act without noise")
+    print(f"Obs space: {ob_space}")
+    print(f"policy.obs_ph: {policy.obs_ph}")
+    print(f"policy.processed_obs: {policy.processed_obs}")
+    print(f"Obs_phs space: {obs_phs}")
+    #assert 5 == 1
+    #######################
+    
     batch_size = tf.shape(policy.obs_ph)[0]
     n_actions = ac_space.nvec if isinstance(ac_space, MultiDiscrete) else ac_space.n
     random_actions = tf.random_uniform(tf.stack([batch_size]), minval=0, maxval=n_actions, dtype=tf.int64)
@@ -321,7 +333,7 @@ def build_act_with_param_noise(q_func, ob_space, ac_space, stochastic_ph, update
 
 def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=None,
                 gamma=1.0, double_q=True, scope="deepq", reuse=None,
-                param_noise=False, param_noise_filter_func=None, full_tensorboard_log=False):
+                param_noise=False, param_noise_filter_func=None, full_tensorboard_log=False, layers=None):
     """
     Creates the train function:
 
@@ -364,16 +376,16 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             act_f, obs_phs = build_act_with_param_noise(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess,
                                                         param_noise_filter_func=param_noise_filter_func)
         else:
-            act_f, obs_phs = build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess)
+            act_f, obs_phs = build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess, layers=layers)
 
         # q network evaluation
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
-            step_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
+            step_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs, layers=layers)
         q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=tf.get_variable_scope().name + "/model")
         # target q network evaluation
 
         with tf.variable_scope("target_q_func", reuse=False):
-            target_policy = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=False)
+            target_policy = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=False, layers=layers)
         target_q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,
                                                scope=tf.get_variable_scope().name + "/target_q_func")
 
@@ -382,7 +394,7 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
         double_obs_ph = target_policy.obs_ph
         if double_q:
             with tf.variable_scope("double_q", reuse=True, custom_getter=tf_util.outer_scope_getter("double_q")):
-                double_policy = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True)
+                double_policy = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, layers=layers)
                 double_q_values = double_policy.q_values
                 double_obs_ph = double_policy.obs_ph
 

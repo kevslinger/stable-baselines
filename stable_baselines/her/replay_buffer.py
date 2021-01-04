@@ -56,6 +56,9 @@ class HindsightExperienceReplayWrapper(object):
         self.n_sampled_goal = n_sampled_goal
         self.goal_selection_strategy = goal_selection_strategy
         self.env = wrapped_env
+        print("HELLO THERE KEVBERT")
+        print("The observation space of the HERWrapper is ")
+        print(self.env.observation_space)
         # Buffer for storing transitions of the current episode
         self.episode_transitions = []
         self.replay_buffer = replay_buffer

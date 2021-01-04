@@ -70,7 +70,15 @@ class BaseRLModel(ABC):
                     print("Creating environment from the given name, wrapped in a DummyVecEnv.")
                 self.env = env = DummyVecEnv([lambda: gym.make(env)])
 
+            #o_space = dict(desired_goal=env.observation_space['desired_goal'], observation=env.observation_space['observation'])
             self.observation_space = env.observation_space
+            #self.observation_space = o_space
+            print("***************************")
+            print("****************************")
+            print(self.observation_space)
+            print("That was the obs space in base class")
+            print("****************************")
+            print("***************************")
             self.action_space = env.action_space
             if requires_vec_env:
                 if isinstance(env, VecEnv):

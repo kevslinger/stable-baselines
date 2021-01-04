@@ -62,7 +62,7 @@ class DQN(OffPolicyRLModel):
                  learning_starts=1000, target_network_update_freq=500, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
                  prioritized_replay_eps=1e-6, param_noise=False,
-                 n_cpu_tf_sess=None, verbose=0, tensorboard_log=None, logdir=None,
+                 n_cpu_tf_sess=None, verbose=0, tensorboard_log=None, logdir=None, layers=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None, _run=None):
 
         # TODO: replay_buffer refactoring
@@ -103,6 +103,7 @@ class DQN(OffPolicyRLModel):
         self.params = None
         self.summary = None
 
+        self.layers = layers
         if _init_setup_model:
             self.setup_model()
 
@@ -134,6 +135,13 @@ class DQN(OffPolicyRLModel):
 
                 optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
 
+                print("*******************************")
+                print("********************************")
+                print(self.observation_space)
+                print("That was the observation space right before build_train")
+                print("********************************")
+                print("********************************")
+                #exit(0)
                 self.act, self._train_step, self.update_target, self.step_model = build_train(
                     q_func=partial(self.policy, **self.policy_kwargs),
                     ob_space=self.observation_space,
@@ -144,7 +152,8 @@ class DQN(OffPolicyRLModel):
                     param_noise=self.param_noise,
                     sess=self.sess,
                     full_tensorboard_log=self.full_tensorboard_log,
-                    double_q=self.double_q
+                    double_q=self.double_q,
+                    layers=self.layers
                 )
                 self.proba_step = self.step_model.proba_step
                 self.params = tf_util.get_trainable_vars("deepq")
@@ -196,8 +205,14 @@ class DQN(OffPolicyRLModel):
 
             reset = True
             obs = self.env.reset()
+            print("The obs space is ")
+            print(obs)
+            #exit(0)
             # Retrieve unnormalized observation for saving into the buffer
             if self._vec_normalize_env is not None:
+                # The answer is no
+                print("Hello hi yes do we run this code")
+                exit(0)
                 obs_ = self._vec_normalize_env.get_original_obs().squeeze()
 
             for _ in range(total_timesteps):

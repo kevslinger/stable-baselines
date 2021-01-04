@@ -21,7 +21,7 @@ class HER(BaseRLModel):
     """
 
     def __init__(self, policy, env, model_class, n_sampled_goal=4,
-                 goal_selection_strategy='future', logdir=None, *args, **kwargs):
+                 goal_selection_strategy='future', logdir=None, layers=None, *args, **kwargs):
 
         assert not isinstance(env, VecEnvWrapper), "HER does not support VecEnvWrapper"
 
@@ -49,7 +49,9 @@ class HER(BaseRLModel):
         assert issubclass(model_class, OffPolicyRLModel), \
             "Error: HER only works with Off policy model (such as DDPG, SAC, TD3 and DQN)."
 
-        self.model = self.model_class(policy, self.env, logdir=logdir, *args, **kwargs)
+        print("*************************************")
+        print("RAWWWRRR I AM MAKING DQN")
+        self.model = self.model_class(policy, self.env, logdir=logdir, layers=layers, *args, **kwargs)
         # Patch to support saving/loading
         self.model._save_to_file = self._save_to_file
         
