@@ -68,7 +68,7 @@ class DRQNPolicy(BasePolicy):
 
 class FeedForwardPolicy(DRQNPolicy):
     """
-    Policy object that implements a DQN policy, using a feed forward neural network.
+    Policy object that implements a DRQN policy, using an LSTM and feed forward neural network.
 
     :param sess: (TensorFlow session) The current TensorFlow session
     :param ob_space: (Gym Space) The observation space of the environment
@@ -110,6 +110,10 @@ class FeedForwardPolicy(DRQNPolicy):
             with tf.variable_scope("action_value"):
                 extracted_features = tf.layers.flatten(self.processed_obs)
                 action_out = extracted_features
+                # Let's put the LSTM right here.
+                # Then we'll feed the output into the 2 FC layers.
+                # in the DRQN paper, they suggest removing the first FC layer and having the
+                # LSTM *replace* it instead of add to it. We can try both!
                 for layer_size in layers:
                     action_out = tf_layers.fully_connected(action_out, num_outputs=layer_size, activation_fn=None)
                     if layer_norm:
@@ -147,10 +151,7 @@ class FeedForwardPolicy(DRQNPolicy):
                 #action_out = keras_layers.LSTM(10)(action_out)
                 #lstm = layers.LSTM(10, return_sequences=True, return_state=True)
 
-                import tensorflow.nn as nn
 
-                cell = nn.rnn_cell.LSTMCell(4096)
-                cell = nn.rnn_cell.MultiRNNCell([cell] * 10)
                 #outputs, state = nn.dynamic_rnn(cell, tf.pack(layers), dtype=tf.float32, time_major=True)
 
 
@@ -292,3 +293,4 @@ register_policy("CnnPolicy", CnnPolicy)
 register_policy("LnCnnPolicy", LnCnnPolicy)
 register_policy("MlpPolicy", MlpPolicy)
 register_policy("LnMlpPolicy", LnMlpPolicy)
+register_policy("LSTMFFPolicy", LSTMFFPolicy)
