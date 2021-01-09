@@ -105,7 +105,7 @@ class FeedForwardPolicy(DRQNPolicy):
             #layers = [32, 32]
             #layers = [16, 16]
             #layers = [16, 16, 16]
-
+        print("WE ARE IN LSTM POLICY")
         with tf.variable_scope("model", reuse=reuse):
             with tf.variable_scope("action_value"):
                 extracted_features = tf.layers.flatten(self.processed_obs)
@@ -151,6 +151,11 @@ class FeedForwardPolicy(DRQNPolicy):
                 #action_out = keras_layers.LSTM(10)(action_out)
                 #lstm = layers.LSTM(10, return_sequences=True, return_state=True)
 
+
+                #import tensorflow.nn as nn
+
+                #cell = nn.rnn_cell.LSTMCell(4096)
+                #cell = nn.rnn_cell.MultiRNNCell([cell] * 10)
 
                 #outputs, state = nn.dynamic_rnn(cell, tf.pack(layers), dtype=tf.float32, time_major=True)
 
@@ -293,4 +298,3 @@ register_policy("CnnPolicy", CnnPolicy)
 register_policy("LnCnnPolicy", LnCnnPolicy)
 register_policy("MlpPolicy", MlpPolicy)
 register_policy("LnMlpPolicy", LnMlpPolicy)
-register_policy("LSTMFFPolicy", LSTMFFPolicy)
