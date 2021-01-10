@@ -174,7 +174,7 @@ class DRQN(OffPolicyRLModel):
                 print("*******************************")
                 print("********************************")
                 print("Was that useful info or no")
-                #exit(0)
+                exit(0)
 
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
