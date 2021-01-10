@@ -117,6 +117,7 @@ class FeedForwardPolicy(DRQNPolicy):
                 num_units = 256
                 rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=num_units, state_is_tuple=True)
                 lstm_state_in = rnn_cell.zero_state(ob_space, tf.float32)
+
                 rnn, rnn_state = tf.nn.dynamic_rnn(inputs=action_out, cell=rnn_cell, dtype=tf.float32,
                                                     initial_state=lstm_state_in)
                 rnn = tf.reshape(rnn, shape=[-1, num_units])
@@ -171,6 +172,17 @@ class FeedForwardPolicy(DRQNPolicy):
             if self.dueling:
                 with tf.variable_scope("state_value"):
                     state_out = extracted_features
+                    # Let's put the LSTM right here.
+                    # Then we'll feed the output into the 2 FC layers.
+                    # in the DRQN paper, they suggest removing the first FC layer and having the
+                    # LSTM *replace* it instead of add to it. We can try both!
+                    num_units = 256
+                    rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=num_units, state_is_tuple=True)
+                    lstm_state_in = rnn_cell.zero_state(ob_space, tf.float32)
+
+                    rnn, rnn_state = tf.nn.dynamic_rnn(inputs=state_out, cell=rnn_cell, dtype=tf.float32,
+                                                       initial_state=lstm_state_in)
+                    rnn = tf.reshape(rnn, shape=[-1, num_units])
                     for layer_size in layers:
                         state_out = tf_layers.fully_connected(state_out, num_outputs=layer_size, activation_fn=None)
                         if layer_norm:
